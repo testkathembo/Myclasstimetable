@@ -1,0 +1,10 @@
+<!-- users/templates/users/dashboard.html -->
+{% extends 'users/base.html' %}
+
+{% block title %}User Dashboard{% endblock %}
+
+{% block content %}
+<h1>Welcome to Your Dashboard</h1>
+<p>Here you can manage your classes and view your schedule.</p>
+<a href="{% url 'logout' %}">Logout</a> <!-- Logout link -->
+{% endblock %}
