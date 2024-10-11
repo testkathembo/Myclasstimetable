@@ -1,6 +1,8 @@
 from django import forms
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, PasswordResetForm
 from .models import CustomUser
+from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 
 class CustomUserCreationForm(UserCreationForm):
     email = forms.EmailField(
@@ -55,3 +57,21 @@ class CustomLoginForm(AuthenticationForm):
     class Meta:
         model = CustomUser
         fields = ['username', 'password']
+        
+User = get_user_model()  # This ensures Django uses your custom user model
+
+class CustomPasswordResetForm(PasswordResetForm):
+    username = forms.CharField(max_length=150, required=True, label="Username")
+
+    def clean(self):
+        cleaned_data = super().clean()
+        username = cleaned_data.get('username')
+        email = cleaned_data.get('email')
+
+        # Check if the username and email match for the custom user model
+        try:
+            user = User.objects.get(username=username, email=email)
+        except User.DoesNotExist:
+            raise forms.ValidationError("The provided username and email do not match.")
+        return cleaned_data
+

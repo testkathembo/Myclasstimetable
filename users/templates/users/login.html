@@ -1,31 +1,30 @@
 {% extends 'base.html' %}
 {% load crispy_forms_tags %}
 
+{% block meta %}
+<meta name="description" content="Login to access your personalized dashboard for managing classes and schedules.">
+<meta name="keywords" content="login, user login, access, dashboard, classes, schedule, manage">
+{% endblock %}
+
 {% block content %}
 <div class="container mt-5 w-50">
     <div class="card shadow-sm border-light">
-        <div class="card-header text-center" style="background-color: #f8f9fa;">
-            <h2 class="mb-0" style="color: green;">Login</h2>
+        <div class="card-header text-center">
+            <h2 class="mb-0">Login</h2>
         </div>
-        <div class="card-body">
-            {% if form.errors %}
-                <div class="alert alert-danger">
-                    <ul>
-                        {% for field in form %}
-                            {% for error in field.errors %}
-                                <li>{{ field.label }}: {{ error }}</li>
-                            {% endfor %}
-                        {% endfor %}
-                    </ul>
-                </div>
-            {% endif %}
-            <form method="POST" action="{% url 'login' %}">
+        <div class="card-body">                
+            {% for field in form %}
+                {% for error in field.errors %}
+                    {{ field.label }}: {{ error }}
+                {% endfor %}
+            {% endfor %}               
+            <form method="post" action="{% url 'login' %}">
                 {% csrf_token %}
                 {{ form|crispy }}  <!-- Render form fields using crispy forms -->
                 <button type="submit" class="btn btn-primary btn-block mt-3">Login</button>
             </form>
             <p class="mt-3">
-                <a href="{% url 'password_reset' %}">Forgot your password?</a>
+                <a href="{% url 'password_reset_form' %}">Forgot your password?</a>
             </p>
             <div class="text-center mt-3">
                 <a href="{% url 'register' %}" class="text-decoration-none">Don't have an account? Register here.</a>

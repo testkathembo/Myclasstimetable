@@ -26,11 +26,12 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'users',
-    'faculties',
+    'django.contrib.staticfiles',    
     'crispy_forms',
     'crispy_bootstrap4',
+    'users',
+    'school', 
+    
 ]
 
 # settings.py
@@ -78,11 +79,16 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'myclasstimetable',  # Replace with your MySQL database name
         'USER': 'root',      # Replace with your MySQL username
-        'PASSWORD': '',  # Replace with your MySQL password
-        'HOST': 'localhost',    # Or your MySQL server's address
-        'PORT': '3306',         # Default MySQL port
+        'PASSWORD': '',      # Replace with your MySQL password
+        'HOST': 'localhost', # Or your MySQL server's address
+        'PORT': '3306',      # Default MySQL port
+        'OPTIONS': {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+            'isolation_level': 'read committed'
+        },  # Activate the MariaDB options
     }
 }
+
 
 
 
@@ -136,5 +142,9 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'testKathembo@gmail.com'
 EMAIL_HOST_PASSWORD = 'gipwmvdcuwaqqkup'
+
+LOGIN_URL = 'login'
+LOGOUT_REDIRECT_URL = 'login'  # Redirect to the custom login page after logout
+
 
 

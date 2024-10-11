@@ -16,7 +16,7 @@
                         </ul>
                     </div>
                 {% endif %}
-                <form method="POST" action="{% url 'register' %}">
+                <form method="post" action="{% url 'register' %}">
                     {% csrf_token %}
                     {{ form|crispy }}  
                     <button type="submit" class="btn btn-primary btn-block mt-3">Register</button>
