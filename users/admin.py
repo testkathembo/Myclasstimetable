@@ -2,9 +2,10 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from .models import CustomUser
 
+
 class CustomUserAdmin(UserAdmin):
     list_display = ('username', 'email', 'first_name', 'last_name', 'role', 'is_staff', 'is_active')
-
+    
     fieldsets = (
         (None, {"fields": ('username', 'password')}),
         ('Person Info', {'fields': ('first_name', 'last_name', 'email', 'phone')}),
@@ -28,3 +29,4 @@ class CustomUserAdmin(UserAdmin):
 
 # Register the CustomUser model with the CustomUserAdmin configuration
 admin.site.register(CustomUser, CustomUserAdmin)
+

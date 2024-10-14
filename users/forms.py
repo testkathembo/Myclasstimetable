@@ -31,7 +31,7 @@ class CustomUserCreationForm(UserCreationForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Add custom placeholders for form fields if needed
+        
         self.fields['first_name'].widget.attrs.update({'placeholder': 'Enter first name'})
         self.fields['last_name'].widget.attrs.update({'placeholder': 'Enter last name'})
         self.fields['email'].widget.attrs.update({'placeholder': 'Enter email address'})

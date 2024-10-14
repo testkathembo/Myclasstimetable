@@ -55,7 +55,9 @@ ROOT_URLCONF = 'Myclasstimetable.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [
+            os.path.join(BASE_DIR, 'users', 'templates'),  # Add this line
+        ],
         'APP_DIRS': True,  # This allows Django to automatically look inside app templates
         'OPTIONS': {
             'context_processors': [

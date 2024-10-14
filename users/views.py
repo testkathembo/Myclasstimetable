@@ -4,6 +4,8 @@ from django.contrib import messages
 from .forms import CustomUserCreationForm, CustomLoginForm, CustomPasswordResetForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import PasswordResetView, PasswordResetCompleteView
+from django.views.generic import ListView
+from .models import CustomUser
 
 
 # Registration view
@@ -84,3 +86,8 @@ def lecturer_dashboard(request):
 @login_required
 def student_dashboard(request):
     return render(request, 'users/student_dashboard.html')  # Render student dashboard
+
+# Pagination class
+class CustomUserListView(ListView):
+    model = CustomUser
+    template_name = 'YOur'
