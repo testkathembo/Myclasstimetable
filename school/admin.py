@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Unit, Classroom, Lecturer, Student
+from .models import Unit, Classroom, Lecturer, Student, Faculty
 
 # Customize the default admin site
 admin.site.site_header = "My School Administration"
@@ -42,3 +42,10 @@ class StudentAdmin(admin.ModelAdmin):
     search_fields = ('user__first_name', 'user__last_name', 'student_id')
     filter_horizontal = ('enrolled_units',)  # For selecting multiple units
     list_per_page = 10
+    
+@admin.register(Faculty)
+class FacultyAdmin(admin.ModelAdmin):
+    list_display = ('name', 'description')
+    search_fields = ('name',)
+    list_per_page = 10
+    list_filter = ('name',) # This helps ordering Faculties according to their names

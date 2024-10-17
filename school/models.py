@@ -1,13 +1,25 @@
 from django.db import models
 from django.conf import settings  # For ForeignKey relations with the CustomUser model
 
+
+class Faculty(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+    description = models.TextField(blank=True)
+
+    def __str__(self):
+        return self.name
+
+
 class Unit(models.Model):
     code = models.CharField(max_length=10, unique=True)
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
+    faculty = models.ForeignKey(Faculty, on_delete=models.CASCADE, related_name='units')  # Link units to faculties
     lecturer = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,  # Allow lecturer to be assigned later (nullable)
+        null=True,
+        blank=True,
         limit_choices_to={'role': 'lecturer'},  # Ensure only users with role 'lecturer' can be assigned
         related_name='units'
     )
@@ -22,13 +34,6 @@ class Classroom(models.Model):
 
     def __str__(self):
         return f"Classroom: {self.name} (Capacity: {self.capacity})"
-    
-class Faculty(models.Model):
-    name = models.CharField(max_length=255, unique=True)
-    description = models.TextField(blank=True)
-
-    def __str__(self):
-        return self.name
 
 
 class Lecturer(models.Model):
@@ -43,6 +48,7 @@ class Lecturer(models.Model):
     def __str__(self):
         return f"Lecturer: {self.user.first_name} {self.user.last_name}"
 
+
 class Student(models.Model):
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
@@ -56,4 +62,3 @@ class Student(models.Model):
 
     def __str__(self):
         return f"Student: {self.user.first_name} {self.user.last_name} (ID: {self.student_id})"
-
