@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404, redirect
 from django.contrib.auth import login, authenticate
 from django.contrib import messages
 from .forms import CustomUserCreationForm, CustomLoginForm, CustomPasswordResetForm
@@ -6,6 +6,11 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import PasswordResetView, PasswordResetCompleteView
 from django.views.generic import ListView
 from .models import CustomUser
+from django.contrib.auth.decorators import login_required
+from school.models import Student, StudentUnitEnrollment
+
+
+
 
 
 # Registration view
@@ -85,9 +90,43 @@ def lecturer_dashboard(request):
 
 @login_required
 def student_dashboard(request):
-    return render(request, 'users/student_dashboard.html')  # Render student dashboard
+    # Check if the logged-in user is an admin
+    if request.user.is_superuser:
+        messages.error(request, "Access Denied: Admins cannot access the student dashboard.")
+        return redirect('/admin/school/student/')  # Redirect to the admin student list page
+    
+    # Fetch the logged-in student
+    try:
+        student = request.user.student_profile  # Adjust if your model uses another related_name
+    except Student.DoesNotExist:
+        messages.error(request, "Access Denied: Only students can access this page.")
+        return redirect('profile')  # Redirect to a safer page
 
-# Pagination class
-class CustomUserListView(ListView):
-    model = CustomUser
-    template_name = 'YOur'
+    # Fetch enrolled units for the student
+    enrolled_units = student.unit_enrollments.all()
+
+    return render(request, 'users/student_dashboard.html', {
+        'student': student,
+        'enrolled_units': enrolled_units,
+    })
+
+
+@login_required
+def admin_student_profile(request, student_id):
+    # Only superusers can view the profile
+    if not request.user.is_superuser:
+        messages.error(request, "Access Denied: Only admins can view student profiles.")
+        return redirect('/admin/')
+
+    student = get_object_or_404(Student, id=student_id)
+    enrolled_units = student.unit_enrollments.all()
+
+    return render(request, 'users/admin_student_profile.html', {
+        'student': student,
+        'enrolled_units': enrolled_units,
+    })
+
+
+
+
+

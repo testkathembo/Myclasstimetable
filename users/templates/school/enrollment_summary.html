@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Enrollment Summary</title>
+</head>
+<body>
+    <h1>Enrollment Summary for {{ student.user.first_name }} {{ student.user.last_name }}</h1>
+
+    <h2>Enrolled Units:</h2>
+    <ul>
+        {% for enrollment in enrolled_units %}
+            <li>{{ enrollment.unit.name }} ({{ enrollment.semester.name }})</li>
+        {% endfor %}
+    </ul>
+     <a href="{% if request.user.is_superuser %}/admin/school/student/{% else %}{% url 'student_dashboard' %}{% endif %}">Go to Dashboard</a>
+
+</body>
+</html>

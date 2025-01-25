@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Profile for {{ student.user.first_name }} {{ student.user.last_name }}</title>
+</head>
+<body>
+    <h1>Profile for {{ student.user.first_name }} {{ student.user.last_name }}</h1>
+    <p><strong>Student ID:</strong> {{ student.student_id }}</p>
+    <p><strong>Faculty:</strong> {{ student.faculty.name }}</p>
+
+    <h2>Enrolled Units:</h2>
+    <ul>
+        {% if enrolled_units %}
+            {% for enrollment in enrolled_units %}
+                <li>
+                    {{ enrollment.unit.name }} (Semester: {{ enrollment.semester.name }})
+                    <a href="{% url 'delete_unit_enrollment' student.id enrollment.unit.id %}">Remove</a>
+                </li>
+            {% endfor %}
+        {% else %}
+            <li>No units enrolled yet.</li>
+        {% endif %}
+    </ul>
+
+    <p>
+        <a href="{% if request.user.is_superuser %}/admin/school/student/{% else %}{% url 'student_dashboard' %}{% endif %}">Go to Dashboard</a>
+    </p>
+</body>
+</html>

@@ -1,18 +1,14 @@
 from django.contrib import admin
-from .models import Unit, Classroom, Lecturer, Student, Faculty
+from .models import Unit, Classroom, Lecturer, Student, Faculty, Semester, TimeSlot
+from .forms import AssignUnitForm
+from django.urls import reverse, path
+from django.utils.html import format_html
+from django.http import HttpResponseRedirect
 
 # Customize the default admin site
 admin.site.site_header = "My School Administration"
 admin.site.site_title = "My School Administration"
 admin.site.index_title = "Welcome to My School Administration"
-
-@admin.register(Unit)
-class UnitAdmin(admin.ModelAdmin):
-    list_display = ('code', 'name', 'lecturer')
-    search_fields = ('code', 'name')
-    list_filter = ('lecturer',)
-    list_per_page = 10
-
 
 @admin.register(Classroom)
 class ClassroomAdmin(admin.ModelAdmin):
@@ -21,27 +17,69 @@ class ClassroomAdmin(admin.ModelAdmin):
     list_filter = ('capacity',)
     list_per_page = 10
 
-
 @admin.register(Lecturer)
 class LecturerAdmin(admin.ModelAdmin):
-    list_display = ('user', 'faculty')
-    search_fields = ('user__first_name', 'user__last_name', 'faculty')
+    list_display = ('lecturer_name', 'faculty')  # Use a custom method for "lecturer_name"
+    search_fields = ('user__first_name', 'user__last_name', 'faculty__name')
     list_per_page = 10
 
-    # Ensure that permissions are correctly set
-    def has_change_permission(self, request, obj=None):
-        return request.user.is_superuser  # Allow superuser to change
+    # Custom method to display the lecturer name
+    def lecturer_name(self, obj):
+        return f"{obj.user.first_name} {obj.user.last_name}"
 
-    def has_delete_permission(self, request, obj=None):
-        return request.user.is_superuser  # Allow superuser to delete
+    # Specify the column name
+    lecturer_name.short_description = 'LECTURER'
 
+    # Custom view to show related units and semesters
+    def get_related_units_and_semesters(self, obj):
+        units = obj.assigned_units.all()  # Access the assigned units
+        if units:
+            return ", ".join(
+                [f"{unit.name} (Semester: {unit.semester.name})" for unit in units]
+            )
+        return "No units assigned"
+
+    get_related_units_and_semesters.short_description = "Units and Semesters"
+
+    readonly_fields = ['get_related_units_and_semesters']
+
+    fieldsets = (
+        (None, {
+            'fields': ('user', 'faculty', 'get_related_units_and_semesters'),
+        }),
+    )
 
 @admin.register(Student)
 class StudentAdmin(admin.ModelAdmin):
-    list_display = ('user', 'student_id')
-    search_fields = ('user__first_name', 'user__last_name', 'student_id')
-    filter_horizontal = ('enrolled_units',)  # For selecting multiple units
+    list_display = ('student_id', 'user_first_name', 'user_last_name', 'faculty', 'enroll_student', 'view_profile')
+    search_fields = ('student_id', 'user__first_name', 'user__last_name', 'faculty__name')
     list_per_page = 10
+
+    # Display the student's first name
+    def user_first_name(self, obj):
+        return obj.user.first_name
+    user_first_name.short_description = 'User First Name'
+
+    # Display the student's last name
+    def user_last_name(self, obj):
+        return obj.user.last_name
+    user_last_name.short_description = 'User Last Name'
+
+    # Link for Enroll functionality
+    def enroll_student(self, obj):
+        url = reverse('enroll_student', args=[obj.id])  # Adjust if the name of the view is different
+        return format_html('<a href="{}">Enroll</a>', url)
+    enroll_student.short_description = 'Enroll Student'
+
+    # New functionality: View Profile
+    def view_profile(self, obj):
+        url = reverse('admin_student_profile', args=[obj.id])
+        return format_html('<a href="{}">View Profile</a>', url)
+    view_profile.short_description = 'View Profile'
+
+
+
+
     
 @admin.register(Faculty)
 class FacultyAdmin(admin.ModelAdmin):
@@ -49,3 +87,47 @@ class FacultyAdmin(admin.ModelAdmin):
     search_fields = ('name',)
     list_per_page = 10
     list_filter = ('name',) # This helps ordering Faculties according to their names
+   
+@admin.register(Semester)
+class SemesterAdmin(admin.ModelAdmin):
+    list_display = ('name',)
+    search_fields = ('name',)
+
+    
+@admin.register(Unit)
+class UnitAdmin(admin.ModelAdmin):
+    form = AssignUnitForm  # Updated form without 'semester'
+    list_display = ['code', 'name', 'faculty', 'lecturer', 'total_hours']
+
+
+    # admin.py
+from django.contrib import admin
+from .models import TimeSlot
+
+@admin.register(TimeSlot)
+class TimeSlotAdmin(admin.ModelAdmin):
+    list_display = ('start_time', 'end_time', 'is_available')  # Show availability in admin
+    list_editable = ('is_available',)  # Allow toggling availability directly in the list view
+
+    
+   
+
+class GenerateTimetableAdmin(admin.ModelAdmin):
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path('generate_timetable/', self.admin_site.admin_view(self.generate_timetable), name='generate_timetable'),
+        ]
+        return custom_urls + urls
+
+    def generate_timetable(self, request):
+        generate_timetable()  # Call the function
+        self.message_user(request, "Timetable generated successfully!")
+        return HttpResponseRedirect("../")
+
+
+
+
+
+
+
