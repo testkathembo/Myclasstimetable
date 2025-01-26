@@ -99,7 +99,7 @@ class Classroom(models.Model):
     is_available = models.BooleanField(default=True)
 
     def __str__(self):
-        return f"{self.name}"
+        return f"{self.name} (Capacity: {self.capacity})"
 
 
 class TimeSlot(models.Model):

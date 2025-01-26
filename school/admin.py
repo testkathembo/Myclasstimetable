@@ -12,9 +12,9 @@ admin.site.index_title = "Welcome to My School Administration"
 
 @admin.register(Classroom)
 class ClassroomAdmin(admin.ModelAdmin):
-    list_display = ('name', 'capacity')
+    list_display = ('name', 'capacity', 'is_available')  # Include 'is_available' in the list
+    list_editable = ('is_available',)  # Allow editing 'is_available' directly in the list view
     search_fields = ('name',)
-    list_filter = ('capacity',)
     list_per_page = 10
 
 @admin.register(Lecturer)
