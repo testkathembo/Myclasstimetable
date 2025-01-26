@@ -37,7 +37,7 @@ class Unit(models.Model):
     faculty = models.ForeignKey(Faculty, on_delete=models.CASCADE, related_name='units')
     lecturer = models.ForeignKey(
         Lecturer, on_delete=models.SET_NULL, null=True, blank=True, related_name='assigned_units'
-    )
+    )  # Retaining the 'lecturer' field
     total_hours = models.IntegerField(default=0)
     physical_hours = models.IntegerField(default=0)
     online_hours = models.IntegerField(default=0)
@@ -96,6 +96,7 @@ class StudentUnitEnrollment(models.Model):
 class Classroom(models.Model):
     name = models.CharField(max_length=100)
     capacity = models.IntegerField()
+    is_available = models.BooleanField(default=True)
 
     def __str__(self):
         return f"{self.name}"
@@ -116,6 +117,7 @@ class ClassTimetable(models.Model):
     classroom = models.ForeignKey(Classroom, on_delete=models.SET_NULL, null=True, blank=True, related_name='timetables')
     time = models.TimeField(default="08:00:00")
     status = models.CharField(max_length=10, choices=[('online', 'Online'), ('physical', 'Physical')])
+    duration = models.CharField(max_length=20, default="1 hour")
 
     def __str__(self):
         return f"{self.unit.name} on {self.day} at {self.time} ({self.status})"
