@@ -93,11 +93,15 @@ class SemesterAdmin(admin.ModelAdmin):
     list_display = ('name',)
     search_fields = ('name',)
 
-    
+    from django.contrib import admin
+from .models import Unit
+
 @admin.register(Unit)
 class UnitAdmin(admin.ModelAdmin):
-    form = AssignUnitForm  # Updated form without 'semester'
-    list_display = ['code', 'name', 'faculty', 'lecturer', 'total_hours']
+    list_display = ('code', 'name', 'faculty', 'lecturer', 'total_hours', 'physical_hours', 'online_hours')
+    search_fields = ('code', 'name', 'faculty__name', 'lecturer__user__first_name', 'lecturer__user__last_name')
+    list_per_page = 10
+
 
 
     # admin.py
