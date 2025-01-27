@@ -114,12 +114,13 @@ class TimeSlot(models.Model):
 class ClassTimetable(models.Model):
     unit = models.ForeignKey(Unit, on_delete=models.CASCADE, related_name='timetable_entries')
     day = models.CharField(max_length=10)  # e.g., Monday, Tuesday
-    classroom = models.ForeignKey(Classroom, on_delete=models.SET_NULL, null=True, blank=True, related_name='timetables')
+    classroom = models.ForeignKey(Classroom, on_delete=models.SET_NULL, null=True, blank=True, related_name='timetables')  # Allows NULL
     time = models.TimeField(default="08:00:00")
     status = models.CharField(max_length=10, choices=[('online', 'Online'), ('physical', 'Physical')])
     duration = models.CharField(max_length=100, default="2 hour")
 
     def __str__(self):
         return f"{self.unit.name} on {self.day} at {self.time} ({self.status})"
+
 
 

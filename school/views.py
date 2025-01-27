@@ -8,7 +8,6 @@ from django.db import models
 from random import choice
 from datetime import time, timedelta
 
-
 # Inline admin to manage the relationship between students, units, and semesters
 class StudentUnitEnrollmentInline(admin.TabularInline):
     model = StudentUnitEnrollment
@@ -140,7 +139,7 @@ def assign_unit_to_lecturer(request, unit_id):
 
 def generate_class_timetable():
     days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
-    time_slots = [time(8, 0), time(10, 0), time(13, 0), time(15, 0)]  # Example time slots
+    time_slots = [time(8, 0), time(10, 0), time(13, 0), time(15, 0)]  # Time slots
     classrooms = Classroom.objects.filter(is_available=True)  # Only available classrooms
 
     # Clear existing timetable
@@ -150,43 +149,67 @@ def generate_class_timetable():
         physical_hours = unit.physical_hours
         online_hours = unit.online_hours
 
-        assigned_time_slots = set()  # Track assigned time slots for the day
         for teaching_mode, hours in [('physical', physical_hours), ('online', online_hours)]:
             if hours == 0:
-                continue  # Skip if no hours for this mode
+                continue
 
-            for day in days:
-                assigned_time = None
-                assigned_classroom = None if teaching_mode == 'online' else classrooms.first()
+            assigned_days = set()  # Track assigned days
+            assigned_time_slots = {}  # Track assigned time slots per day
 
-                # Assign a time slot
-                for slot in time_slots:
-                    if slot not in assigned_time_slots:
-                        assigned_time = slot
-                        assigned_time_slots.add(slot)
-                        break
+            for _ in range(hours):
+                for day in days:
+                    if day in assigned_days:
+                        continue  # Skip already assigned days
 
-                if not assigned_time:
-                    # No time slot available
-                    continue
+                    assigned_time = None
+                    assigned_classroom = None
 
-                # Format the duration
-                duration = f"{hours} hour{'s' if hours > 1 else ''}"
+                    # Handle physical and online teaching modes separately
+                    if teaching_mode == 'physical':
+                        # Assign a classroom dynamically
+                        for classroom in classrooms:
+                            # Check if classroom is already busy
+                            if not ClassTimetable.objects.filter(
+                                Q(classroom=classroom) & Q(day=day) & Q(time__in=time_slots)
+                            ).exists():
+                                assigned_classroom = classroom
+                                break
 
-                # Create a timetable entry
-                ClassTimetable.objects.create(
-                    unit=unit,
-                    day=day,
-                    classroom=assigned_classroom,
-                    time=assigned_time,
-                    status=teaching_mode,
-                    duration=duration
-                )
+                        if not assigned_classroom:
+                            # No classroom available, skip this day
+                            continue
 
-                # Assign only one day per mode
-                break
+                    # Assign a time slot
+                    for slot in time_slots:
+                        if day not in assigned_time_slots:
+                            assigned_time_slots[day] = set()
 
+                        if slot not in assigned_time_slots[day]:
+                            # Check if this slot is available for the day
+                            if not ClassTimetable.objects.filter(Q(day=day) & Q(time=slot)).exists():
+                                assigned_time = slot
+                                assigned_time_slots[day].add(slot)
+                                break
 
+                    if not assigned_time:
+                        # No available time slot, skip this day
+                        continue
+
+                    # Format the duration
+                    duration = "1 hour"  # Assign a fixed duration
+
+                    # Create timetable entry
+                    ClassTimetable.objects.create(
+                        unit=unit,
+                        day=day,
+                        classroom=assigned_classroom,  # Will be None for online
+                        time=assigned_time,
+                        status=teaching_mode,
+                        duration=duration
+                    )
+
+                    assigned_days.add(day)  # Mark the day as assigned
+                    break  # Move to the next teaching hour
 
 def find_available_timeslot(day, start_time, end_time, lecturer, mode, classrooms, unit):
     """
@@ -283,11 +306,20 @@ def student_profile(request, student_id):
         'student': student,
         'enrolled_units': enrolled_units
     })
-    
-def generate_class_timetable():
+
+def generate_class_timetable_view(request):
+    from datetime import time
+    from django.db.models import Q
+
     days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
-    time_slots = [time(8, 0), time(10, 0), time(13, 0), time(15, 0)]  # Example time slots
-    classrooms = Classroom.objects.filter(is_available=True)  # Only available classrooms
+    time_slots = [time(8, 0), time(10, 0), time(13, 0), time(15, 0)]
+    classrooms = Classroom.objects.filter(is_available=True)
+
+    # Ensure there's a placeholder classroom for Zoom
+    zoom_classroom, created = Classroom.objects.get_or_create(
+        name="Zoom",
+        defaults={'capacity': 0, 'is_available': False}
+    )
 
     # Clear existing timetable
     ClassTimetable.objects.all().delete()
@@ -296,30 +328,56 @@ def generate_class_timetable():
         physical_hours = unit.physical_hours
         online_hours = unit.online_hours
 
-        assigned_time_slots = set()  # Track assigned time slots for the day
+        # Keep track of days and time slots already used
+        used_days_and_slots = {}
+
         for teaching_mode, hours in [('physical', physical_hours), ('online', online_hours)]:
             if hours == 0:
-                continue  # Skip if no hours for this mode
+                continue  # Skip modes with no hours
 
-            for day in days:
+            remaining_hours = hours
+            while remaining_hours > 0:
                 assigned_time = None
-                assigned_classroom = None if teaching_mode == 'online' else classrooms.first()
+                assigned_classroom = zoom_classroom if teaching_mode == 'online' else None
 
-                # Assign a time slot
-                for slot in time_slots:
-                    if slot not in assigned_time_slots:
-                        assigned_time = slot
-                        assigned_time_slots.add(slot)
-                        break
+                # Find an available day and time slot
+                for day in days:
+                    if day not in used_days_and_slots:
+                        used_days_and_slots[day] = set()
+
+                    for slot in time_slots:
+                        if slot not in used_days_and_slots[day]:
+                            # Check if the slot is available for the day
+                            if not ClassTimetable.objects.filter(
+                                Q(day=day) & Q(time=slot) & (
+                                    Q(unit__lecturer=unit.lecturer) |
+                                    Q(unit=unit)
+                                )
+                            ).exists():
+                                assigned_time = slot
+                                used_days_and_slots[day].add(slot)
+
+                                # Assign a classroom if physical
+                                if teaching_mode == 'physical':
+                                    for classroom in classrooms:
+                                        if not ClassTimetable.objects.filter(
+                                            Q(classroom=classroom) & Q(day=day) & Q(time=slot)
+                                        ).exists():
+                                            assigned_classroom = classroom
+                                            break
+
+                                break  # Time slot found
+
+                    if assigned_time:
+                        break  # Day and time slot found
 
                 if not assigned_time:
-                    # No time slot available
-                    continue
+                    break  # No more available slots
 
-                # Format the duration
-                duration = f"{hours} hour{'s' if hours > 1 else ''}"
+                # Format the duration (2 hours for physical, 1 hour for online)
+                duration = f"{2 if teaching_mode == 'physical' else 1} hour{'s' if (teaching_mode == 'physical' and 2 > 1) else ''}"
 
-                # Create a timetable entry
+                # Create the timetable entry
                 ClassTimetable.objects.create(
                     unit=unit,
                     day=day,
@@ -329,11 +387,19 @@ def generate_class_timetable():
                     duration=duration
                 )
 
-                # Assign only one day per mode
-                break
+                # Decrement remaining hours for this mode
+                remaining_hours -= 2 if teaching_mode == 'physical' else 1
+
+    messages.success(request, "Class timetable generated successfully.")
+    return redirect('class_timetable_view')
+
+
+
+
 def class_timetable_view(request):
-    timetable = ClassTimetable.objects.all()
+    timetable = ClassTimetable.objects.select_related('unit', 'classroom').all()
     return render(request, 'school/class_timetable.html', {'timetable': timetable})
+
 
 def generate_timetable_view(request):
     generate_class_timetable()

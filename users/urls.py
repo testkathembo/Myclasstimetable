@@ -48,9 +48,10 @@ urlpatterns = [
     path('units-enrollment/', school_views.unit_enrollment_view, name='units_enrollment'), 
     path('students/<int:student_id>/delete_unit/<int:unit_id>/', school_views.delete_unit_enrollment, name='delete_unit_enrollment'),
     path('students/<int:student_id>/profile/', school_views.student_profile, name='student_profile'),
-    path('generate-timetable/', school_views.generate_class_timetable, name='generate_class_timetable'),
+    path('generate-timetable/', school_views.generate_class_timetable_view, name='generate_timetable'),
     path('class-timetable/', school_views.class_timetable_view, name='class_timetable_view'),
     path('class-timetable/', school_views.generate_timetable_view, name='class_timetable_view'),
+    
     
   
 ]
