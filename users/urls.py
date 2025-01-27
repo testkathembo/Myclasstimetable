@@ -50,7 +50,9 @@ urlpatterns = [
     path('students/<int:student_id>/profile/', school_views.student_profile, name='student_profile'),
     path('generate-timetable/', school_views.generate_class_timetable, name='generate_class_timetable'),
     path('class-timetable/', school_views.class_timetable_view, name='class_timetable_view'),
-    # Add other paths here
+    path('class-timetable/', school_views.generate_timetable_view, name='class_timetable_view'),
+    
+  
 ]
     
 

@@ -117,7 +117,9 @@ class ClassTimetable(models.Model):
     classroom = models.ForeignKey(Classroom, on_delete=models.SET_NULL, null=True, blank=True, related_name='timetables')
     time = models.TimeField(default="08:00:00")
     status = models.CharField(max_length=10, choices=[('online', 'Online'), ('physical', 'Physical')])
-    duration = models.CharField(max_length=20, default="1 hour")
+    duration = models.CharField(max_length=100, default="2 hour")
 
     def __str__(self):
         return f"{self.unit.name} on {self.day} at {self.time} ({self.status})"
+
+
