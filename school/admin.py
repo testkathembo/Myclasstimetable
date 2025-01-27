@@ -1,9 +1,12 @@
-from django.contrib import admin
+from django.contrib import admin, messages
 from .models import Unit, Classroom, Lecturer, Student, Faculty, Semester, TimeSlot
 from .forms import AssignUnitForm
 from django.urls import reverse, path
 from django.utils.html import format_html
 from django.http import HttpResponseRedirect
+from django.shortcuts import redirect
+from .models import Unit, ClassTimetable
+from .views import generate_class_timetable_view  # Import your timetable generation function
 
 # Customize the default admin site
 admin.site.site_header = "My School Administration"
@@ -128,6 +131,34 @@ class GenerateTimetableAdmin(admin.ModelAdmin):
         generate_timetable()  # Call the function
         self.message_user(request, "Timetable generated successfully!")
         return HttpResponseRedirect("../")
+    
+
+class ClassTimetableAdmin(admin.ModelAdmin):
+    list_display = ['unit', 'day', 'classroom', 'time', 'status', 'duration']
+    
+    # Add a custom button for generating the timetable
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path('generate-timetable/', self.admin_site.admin_view(self.generate_timetable), name='generate_timetable'),
+        ]
+        return custom_urls + urls
+
+    def generate_timetable(self, request):
+        # Call the function to generate the timetable
+        generate_class_timetable_view(request)
+        messages.success(request, "Class timetable generated successfully!")
+        return redirect('..')  # Redirect back to the admin page
+
+def changelist_view(self, request, extra_context=None):
+    extra_context = extra_context or {}
+    extra_context['custom_button'] = True
+    return super().changelist_view(request, extra_context)
+
+
+# Register the model admin
+admin.site.register(ClassTimetable, ClassTimetableAdmin)
+
 
 
 

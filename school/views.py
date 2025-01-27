@@ -158,59 +158,59 @@ def generate_class_timetable_view(request):
         physical_hours = unit.physical_hours
         online_hours = unit.online_hours
 
-        # Keep track of days and time slots already used
-        used_days = set()
-        used_days_and_slots = {}
+        # Track assigned days to enforce separation of physical and online modes
+        assigned_days = set()
 
         for teaching_mode, hours in [('physical', physical_hours), ('online', online_hours)]:
             if hours == 0:
                 continue  # Skip modes with no hours
+
+            # Assign 2 hours for both physical and online if total hours are 4
+            hour_allocation = 2 if hours == 2 else 1  # Allocate 2 hours for modes with 2 hours teaching
 
             remaining_hours = hours
             while remaining_hours > 0:
                 assigned_time = None
                 assigned_classroom = zoom_classroom if teaching_mode == 'online' else None
 
-                # Find an available day for the current teaching mode
+                # Find an available day not already assigned to this unit
                 for day in days:
-                    if teaching_mode == 'online' and day in used_days:
-                        continue  # Ensure the day is not already used by the same unit
+                    if day in assigned_days:
+                        continue  # Skip days already used for this unit
 
-                    if day not in used_days_and_slots:
-                        used_days_and_slots[day] = set()
-
-                    for slot in time_slots:
-                        if slot not in used_days_and_slots[day]:
-                            # Check if the slot is available for the day
+                    if not ClassTimetable.objects.filter(
+                        Q(day=day) & (
+                            Q(unit__lecturer=unit.lecturer) |
+                            Q(unit=unit)
+                        )
+                    ).exists():
+                        # Find an available time slot
+                        for slot in time_slots:
                             if not ClassTimetable.objects.filter(
-                                Q(day=day) & Q(time=slot) & (
-                                    Q(unit__lecturer=unit.lecturer) |
-                                    Q(unit=unit)
-                                )
+                                Q(day=day) & Q(time=slot)
                             ).exists():
                                 assigned_time = slot
-                                used_days.add(day)  # Mark the day as used for this unit
-                                used_days_and_slots[day].add(slot)
+                                assigned_days.add(day)  # Mark the day as used for this unit
+                                break
 
-                                # Assign a classroom if physical
-                                if teaching_mode == 'physical':
-                                    for classroom in classrooms:
-                                        if not ClassTimetable.objects.filter(
-                                            Q(classroom=classroom) & Q(day=day) & Q(time=slot)
-                                        ).exists():
-                                            assigned_classroom = classroom
-                                            break
+                        if assigned_time:
+                            # Assign a classroom if physical
+                            if teaching_mode == 'physical':
+                                for classroom in classrooms:
+                                    if not ClassTimetable.objects.filter(
+                                        Q(classroom=classroom) & Q(day=day) & Q(time=assigned_time)
+                                    ).exists():
+                                        assigned_classroom = classroom
+                                        break
 
-                                break  # Time slot found
-
-                    if assigned_time:
-                        break  # Day and time slot found
+                            break  # Day and time slot found
 
                 if not assigned_time:
-                    break  # No more available slots
+                    # No available slot found; break the loop
+                    break
 
-                # Format the duration (2 hours for physical, 1 hour for online)
-                duration = f"{2 if teaching_mode == 'physical' else 1} hour{'s' if (teaching_mode == 'physical' and 2 > 1) else ''}"
+                # Format the duration
+                duration = f"{hour_allocation} hour{'s' if hour_allocation > 1 else ''}"
 
                 # Create the timetable entry
                 ClassTimetable.objects.create(
@@ -223,11 +223,10 @@ def generate_class_timetable_view(request):
                 )
 
                 # Decrement remaining hours for this mode
-                remaining_hours -= 2 if teaching_mode == 'physical' else 1
+                remaining_hours -= hour_allocation
 
     messages.success(request, "Class timetable generated successfully.")
     return redirect('class_timetable_view')
-
 
 def find_available_timeslot(day, start_time, end_time, lecturer, mode, classrooms, unit):
     """
@@ -353,6 +352,9 @@ def generate_class_timetable_view(request):
             if hours == 0:
                 continue  # Skip modes with no hours
 
+            # Assign 2 hours for both physical and online if total hours are 4
+            hour_allocation = 2 if hours == 2 else 1  # Allocate 2 hours for modes with 2 hours teaching
+
             remaining_hours = hours
             while remaining_hours > 0:
                 assigned_time = None
@@ -395,7 +397,7 @@ def generate_class_timetable_view(request):
                     break
 
                 # Format the duration
-                duration = f"{2 if teaching_mode == 'physical' else 1} hour{'s' if (teaching_mode == 'physical' and 2 > 1) else ''}"
+                duration = f"{hour_allocation} hour{'s' if hour_allocation > 1 else ''}"
 
                 # Create the timetable entry
                 ClassTimetable.objects.create(
@@ -408,11 +410,10 @@ def generate_class_timetable_view(request):
                 )
 
                 # Decrement remaining hours for this mode
-                remaining_hours -= 2 if teaching_mode == 'physical' else 1
+                remaining_hours -= hour_allocation
 
     messages.success(request, "Class timetable generated successfully.")
     return redirect('class_timetable_view')
-
 
 def class_timetable_view(request):
     timetable = ClassTimetable.objects.select_related('unit', 'classroom').all()

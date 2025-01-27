@@ -1,0 +1,10 @@
+{% extends "admin/change_list.html" %}
+
+{% block object-tools %}
+    {% if custom_button %}
+        <div class="object-tools">
+            <a href="generate-timetable/" class="button">Generate Timetable</a>
+        </div>
+    {% endif %}
+    {{ block.super }}
+{% endblock %}
