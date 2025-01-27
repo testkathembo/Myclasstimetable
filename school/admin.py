@@ -106,11 +106,6 @@ class UnitAdmin(admin.ModelAdmin):
     list_per_page = 10
 
 
-
-    # admin.py
-from django.contrib import admin
-from .models import TimeSlot
-
 @admin.register(TimeSlot)
 class TimeSlotAdmin(admin.ModelAdmin):
     list_display = ('start_time', 'end_time', 'is_available')  # Show availability in admin
@@ -150,10 +145,10 @@ class ClassTimetableAdmin(admin.ModelAdmin):
         messages.success(request, "Class timetable generated successfully!")
         return redirect('..')  # Redirect back to the admin page
 
-def changelist_view(self, request, extra_context=None):
-    extra_context = extra_context or {}
-    extra_context['custom_button'] = True
-    return super().changelist_view(request, extra_context)
+    def changelist_view(self, request, extra_context=None):
+        extra_context = extra_context or {}
+        extra_context['custom_button'] = True
+        return super().changelist_view(request, extra_context)
 
 
 # Register the model admin
