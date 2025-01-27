@@ -101,7 +101,7 @@ from .models import Unit
 
 @admin.register(Unit)
 class UnitAdmin(admin.ModelAdmin):
-    list_display = ('code', 'name', 'faculty', 'lecturer', 'total_hours', 'physical_hours', 'online_hours')
+    list_display = ('code', 'name', 'faculty', 'lecturer', 'total_hours', 'physical_hours', 'online_hours', 'enrolled_students_count')
     search_fields = ('code', 'name', 'faculty__name', 'lecturer__user__first_name', 'lecturer__user__last_name')
     list_per_page = 10
 

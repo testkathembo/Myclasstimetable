@@ -91,6 +91,7 @@ class StudentUnitEnrollment(models.Model):
 
     def __str__(self):
         return f"{self.student.user.first_name} enrolled in {self.unit.name} ({self.semester.name})"
+    
 
 
 class Classroom(models.Model):
