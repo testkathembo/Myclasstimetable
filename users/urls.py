@@ -1,11 +1,18 @@
-from django.urls import path
+from django.urls import path, include
 from django.contrib.auth.views import LogoutView
 from django.contrib.auth import views as auth_views
 from users import views as user_views
 from school import views as school_views
+from rest_framework.routers import DefaultRouter
+from school.views import ClassTimetableViewSet
 
+# Define the router
+router = DefaultRouter()
+router.register(r'timetables', ClassTimetableViewSet, basename='timetable')  # Keep only one registration
+
+# Define the urlpatterns
 urlpatterns = [
-    # User authentication URLs
+    path('api/', include(router.urls)),  # Include API routes
     path('register/', user_views.register, name='register'),
     path('login/', user_views.custom_login_view, name='login'),
     path('logout/', LogoutView.as_view(template_name='users/logged_out.html', next_page='login'), name='logout'),
