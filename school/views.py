@@ -5,26 +5,8 @@ from django.db.models import Count, Q
 from django.db import models
 from datetime import time, timedelta, datetime
 from random import choice
-from rest_framework import serializers, viewsets
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from rest_framework.views import APIView
 from .models import Student, Unit, Semester, StudentUnitEnrollment, Lecturer, TimeSlot, Classroom, ClassTimetable
 from users.models import CustomUser  # Assuming `CustomUser` is your user model
-from rest_framework.viewsets import ModelViewSet
-from rest_framework.filters import SearchFilter, OrderingFilter
-from django_filters.rest_framework import DjangoFilterBackend
-from .serializers import ClassTimetableSerializer
-from rest_framework.decorators import action
-
-class ClassTimetableViewSet(ModelViewSet):
-    queryset = ClassTimetable.objects.all()
-    serializer_class = ClassTimetableSerializer
-
-    @action(detail=False, methods=['post'])
-    def generate_timetable(self, request):
-        generate_class_timetable_view(request)
-        return Response({"message": "Timetable generated successfully!"})
 
 
 

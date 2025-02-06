@@ -5,7 +5,6 @@ from django.urls import reverse, path
 from django.utils.html import format_html
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect
-from .models import Unit, ClassTimetable
 from .views import generate_class_timetable_view  # Import your timetable generation function
 
 # Customize the default admin site
@@ -73,6 +72,11 @@ class StudentAdmin(admin.ModelAdmin):
         url = reverse('enroll_student', args=[obj.id])  # Adjust if the name of the view is different
         return format_html('<a href="{}">Enroll</a>', url)
     enroll_student.short_description = 'Enroll Student'
+
+    def enroll_student(self, obj):
+        url = reverse('enroll_student', args=[obj.id])  # Adjust if the name of the view is different
+        return format_html('<a href="{}">Enroll</a>', url)
+
 
     # New functionality: View Profile
     def view_profile(self, obj):
@@ -151,8 +155,6 @@ class ClassTimetableAdmin(admin.ModelAdmin):
         return super().changelist_view(request, extra_context)
 
 
-# Register the model admin
-admin.site.register(ClassTimetable, ClassTimetableAdmin)
 
 
 

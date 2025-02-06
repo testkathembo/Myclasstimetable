@@ -3,16 +3,11 @@ from django.contrib.auth.views import LogoutView
 from django.contrib.auth import views as auth_views
 from users import views as user_views
 from school import views as school_views
-from rest_framework.routers import DefaultRouter
-from school.views import ClassTimetableViewSet
 
-# Define the router
-router = DefaultRouter()
-router.register(r'timetables', ClassTimetableViewSet, basename='timetable')  # Keep only one registration
+
 
 # Define the urlpatterns
 urlpatterns = [
-    path('api/', include(router.urls)),  # Include API routes
     path('register/', user_views.register, name='register'),
     path('login/', user_views.custom_login_view, name='login'),
     path('logout/', LogoutView.as_view(template_name='users/logged_out.html', next_page='login'), name='logout'),
@@ -21,7 +16,6 @@ urlpatterns = [
     path('password_reset_done/', auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),
     path('reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
     path('reset/done/', user_views.CustomPasswordResetCompleteView.as_view(), name='password_reset_complete'),
-
     # User profile and dashboards
     path('profile/', user_views.profile, name='profile'),
     path('lecturer_dashboard/', user_views.lecturer_dashboard, name='lecturer_dashboard'),

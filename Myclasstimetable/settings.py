@@ -20,18 +20,11 @@ INSTALLED_APPS = [
     'crispy_bootstrap4',
     'users',
     'school',
-    'rest_framework',
-    'django_filters',
     'corsheaders',  # Add this for CORS
 ]
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
-REST_FRAMEWORK = {
-    'DEFAULT_FILTER_BACKENDS': [
-        'django_filters.rest_framework.DjangoFilterBackend',
-    ],
-}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -48,15 +41,12 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',  # Default authentication
 ]
 
-
 ROOT_URLCONF = 'Myclasstimetable.urls'
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [
-            os.path.join(BASE_DIR, 'users', 'templates'),
-        ],
+        'DIRS': [BASE_DIR / 'templates'],  # Ensure this points to the `templates` folder
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -69,23 +59,16 @@ TEMPLATES = [
     },
 ]
 
+
 WSGI_APPLICATION = 'Myclasstimetable.wsgi.application'
 
+# Update DATABASES configuration to use sqlite3
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'myclasstimetable',
-        'USER': 'root',
-        'PASSWORD': '',
-        'HOST': 'localhost',
-        'PORT': '3306',
-        'OPTIONS': {
-            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-            'isolation_level': 'read committed',
-        },
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
@@ -98,7 +81,8 @@ AUTH_USER_MODEL = 'users.CustomUser'
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Africa/Nairobi'
+
 
 USE_I18N = True
 
@@ -120,8 +104,4 @@ EMAIL_HOST_PASSWORD = 'gipwmvdcuwaqqkup'
 LOGIN_URL = 'login'
 LOGOUT_REDIRECT_URL = 'login'
 
-
-
-# CORS Configuration
-CORS_ALLOW_ALL_ORIGINS = True
 
