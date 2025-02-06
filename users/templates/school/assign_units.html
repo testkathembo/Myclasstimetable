@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Assign Unit to Lecturer</h2>
+<form method="post">
+    {% csrf_token %}
+    <p>
+        <label for="lecturer">Lecturer:</label>
+        <select name="lecturer" id="lecturer">
+            {% for lecturer in lecturers %}
+            <option value="{{ lecturer.id }}" {% if unit.lecturer and unit.lecturer.id == lecturer.id %}selected{% endif %}>
+                {{ lecturer.first_name }} {{ lecturer.last_name }}
+            </option>
+            {% endfor %}
+        </select>
+    </p>
+    <p>
+        <label for="semester">Semester:</label>
+        <select name="semester" id="semester">
+            {% for semester in semesters %}
+            <option value="{{ semester.id }}" {% if unit.semester and unit.semester.id == semester.id %}selected{% endif %}>
+                {{ semester.name }}
+            </option>
+            {% endfor %}
+        </select>
+    </p>
+    <button type="submit">Assign</button>
+</form>
+{% endblock %}

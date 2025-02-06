@@ -1,0 +1,12 @@
+{% for unit in units %}
+  <tr>
+    <td>{{ unit.code }}</td>
+    <td>{{ unit.name }}</td>
+    <td>{{ unit.faculty.name }}</td>
+    <td>{{ unit.semester }}</td>
+    <td>{{ unit.lecturer }}</td>
+    <td>
+      <a href="{% url 'assign_semester_lecturer' unit.id %}">Assign Semester & Lecturer</a>
+    </td>
+  </tr>
+{% endfor %}

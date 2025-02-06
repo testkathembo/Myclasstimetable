@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404, redirect
 from django.contrib.auth import login, authenticate
 from django.contrib import messages
 from .forms import CustomUserCreationForm, CustomLoginForm, CustomPasswordResetForm
@@ -6,7 +6,11 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import PasswordResetView, PasswordResetCompleteView
 from django.views.generic import ListView
 from .models import CustomUser
-
+from django.contrib.auth.decorators import login_required
+from school.models import Student, StudentUnitEnrollment
+from django.contrib.auth.decorators import user_passes_test
+from django.views.decorators.csrf import csrf_protect
+from django.http import JsonResponse
 
 # Registration view
 def register(request):
@@ -25,8 +29,10 @@ def register(request):
     return render(request, 'users/register.html', {'form': form})
 
 
+
+@csrf_protect
 def custom_login_view(request):
-    if request.method == 'POST':  # Fixed to 'POST'
+    if request.method == 'POST':
         form = CustomLoginForm(request=request, data=request.POST)
         if form.is_valid():
             username = form.cleaned_data['username']
@@ -34,27 +40,21 @@ def custom_login_view(request):
             user = authenticate(request, username=username, password=password)
 
             if user is not None:
-                login(request, user)  # Log in the user
+                login(request, user)
                 
-                # Debugging output
-                print(f"Logged in user: {user.username}, Role: {user.role}")
-                
-                # Redirect based on user role
+                # Redirect to React dashboard based on user role
                 if user.is_superuser:
-                    return redirect('/admin/')  # Redirect to admin panel for superusers
+                    return redirect('/admin/')
                 elif user.role.lower() == 'lecturer':
-                    return redirect('lecturer_dashboard')  # Redirect to lecturer dashboard
+                    return redirect('/dashboard/lecturer')
                 elif user.role.lower() == 'student':
-                    return redirect('student_dashboard')  # Redirect to student dashboard
+                    return redirect('/dashboard/student')
                 else:
-                    messages.error(request, 'Unrecognized role.')
-                    return redirect('profile')  # Default redirect for unrecognized roles
-            else:
-                messages.error(request, 'Invalid username or password.')
+                    return redirect('/dashboard/profile')
         else:
-            messages.error(request, 'Invalid form submission.')
+            messages.error(request, 'Invalid username or password.')
     else:
-        form = CustomLoginForm()  # Create a blank form for GET requests
+        form = CustomLoginForm()
 
     return render(request, 'users/login.html', {'form': form})
 
@@ -85,9 +85,97 @@ def lecturer_dashboard(request):
 
 @login_required
 def student_dashboard(request):
-    return render(request, 'users/student_dashboard.html')  # Render student dashboard
+    # Check if the logged-in user is an admin
+    if request.user.is_superuser:
+        messages.error(request, "Access Denied: Admins cannot access the student dashboard.")
+        return redirect('/admin/school/student/')  # Redirect to the admin student list page
+    
+    # Fetch the logged-in student
+    try:
+        student = request.user.student_profile  # Adjust if your model uses another related_name
+    except Student.DoesNotExist:
+        messages.error(request, "Access Denied: Only students can access this page.")
+        return redirect('profile')  # Redirect to a safer page
 
-# Pagination class
-class CustomUserListView(ListView):
-    model = CustomUser
-    template_name = 'YOur'
+    # Fetch enrolled units for the student
+    enrolled_units = student.unit_enrollments.all()
+
+    return render(request, 'users/student_dashboard.html', {
+        'student': student,
+        'enrolled_units': enrolled_units,
+    })
+
+
+@login_required
+def admin_student_profile(request, student_id):
+    # Only superusers can view the profile
+    if not request.user.is_superuser:
+        messages.error(request, "Access Denied: Only admins can view student profiles.")
+        return redirect('/admin/')
+
+    student = get_object_or_404(Student, id=student_id)
+    enrolled_units = student.unit_enrollments.all()
+
+    return render(request, 'users/admin_student_profile.html', {
+        'student': student,
+        'enrolled_units': enrolled_units,
+    })
+    
+    # Restrict user access
+    
+
+def is_admin(user):
+    return user.role == 'ADMIN'
+
+def is_lecturer(user):
+    return user.role == 'LECTURER'
+
+def is_student(user):
+    return user.role == 'STUDENT'
+
+@user_passes_test(is_admin)
+def admin_dashboard(request):
+    # Admin-specific logic here
+    return render(request, 'admin_dashboard.html')
+
+@user_passes_test(is_lecturer)
+def lecturer_dashboard(request):
+    # Lecturer-specific logic here
+    return render(request, 'lecturer_dashboard.html')
+
+@user_passes_test(is_student)
+def student_dashboard(request):
+    # Student-specific logic here
+    return render(request, 'student_dashboard.html')
+
+
+# Redirect user based on role
+def custom_login_redirect(request):
+    user = request.user
+    if user.role == 'ADMIN':
+        return redirect('admin_dashboard')
+    elif user.role == 'Lecturer':
+        return redirect('lecturer_dashboard')
+    elif user.role == 'STUDENT':
+        return redirect('student_dashboard')
+    return redirect('home')
+
+
+
+@login_required
+def current_user_view(request):
+    user = request.user
+    data = {
+        "username": user.username,
+        "first_name": user.first_name,
+        "last_name": user.last_name,
+        "role": getattr(user, "role", "N/A"),  # Assuming role is a custom field
+    }
+    return JsonResponse(data)
+
+
+
+
+
+
+

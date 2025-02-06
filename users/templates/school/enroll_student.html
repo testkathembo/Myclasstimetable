@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Enroll Units for {{ student.user.first_name }} {{ student.user.last_name }}</title>
+</head>
+<body>
+    <h1>Enroll Units for {{ student.user.first_name }} {{ student.user.last_name }}</h1>
+    <form method="post">
+        {% csrf_token %}
+        <div>
+            <label for="semester">Select Semester:</label>
+            <select name="semester" id="semester" required>
+                <option value="">-- Select Semester --</option>
+                {% for semester in semesters %}
+                    <option value="{{ semester.id }}">{{ semester.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <h3>Select Units:</h3>
+            {% for unit in units %}
+                <input type="checkbox" name="units" value="{{ unit.id }}" id="unit_{{ unit.id }}">
+                <label for="unit_{{ unit.id }}">{{ unit.name }}</label><br>
+            {% endfor %}
+        </div>
+        <button type="submit">Enroll</button>
+        <a href="{% url 'student_list' %}">Cancel</a>
+    </form>
+</body>
+</html>

@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Student Profile</title>
+</head>
+<body>
+    <h1>Profile: {{ student.user.first_name }} {{ student.user.last_name }}</h1>
+    <h2>Enrolled Units:</h2>
+    <ul>
+        {% for enrollment in enrolled_units %}
+            <li>{{ enrollment.unit.name }} ({{ enrollment.semester.name }})</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

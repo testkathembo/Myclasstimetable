@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Class Timetable</title>
+</head>
+<body>
+    <h1>Class Timetable</h1>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Unit</th>
+                <th>Unit Code</th>
+                <th>Day</th>
+                <th>Classroom</th>
+                <th>Time</th>
+                <th>Status</th>
+                <th>Lecturer</th>
+                <th>Duration</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for entry in timetable %}
+            <tr>
+                <td>{{ entry.id }}</td>
+                <td>{{ entry.unit.name }}</td>
+                <td>{{ entry.unit.code }}</td>
+                <td>{{ entry.day }}</td>
+                <td>
+                    {% if entry.classroom %}
+                        {{ entry.classroom.name }}
+                    {% else %}
+                        Zoom
+                    {% endif %}
+                </td>
+                <td>{{ entry.time|default:"N/A" }}</td>
+                <td>{{ entry.status }}</td>
+                <td>{{ entry.unit.lecturer.user.first_name }} {{ entry.unit.lecturer.user.last_name }}</td>
+                <td>{{ entry.duration }} hours</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+      
+</body>
+</html>

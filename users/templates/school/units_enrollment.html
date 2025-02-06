@@ -1,0 +1,27 @@
+<table>
+    <thead>
+        <tr>
+            <th>Code</th>
+            <th>Name</th>
+            <th>Faculty</th>
+            <th>Semester</th>
+            <th>Lecturer</th>
+            <th>Enrolled Students</th>
+            <th>Physical Hours</th>
+            <th>Online Hours</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for unit in units %}
+        <tr>
+            <td>{{ unit.code }}</td>
+            <td>{{ unit.name }}</td>
+            <td>{{ unit.faculty.name }}</td>
+            <td>{{ unit.lecturer.user.first_name }} {{ unit.lecturer.user.last_name }}</td>
+            <td>{{ unit.enrolled_students }}</td>
+            <td>{{ unit.physical_hours }}</td>
+            <td>{{ unit.online_hours }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>

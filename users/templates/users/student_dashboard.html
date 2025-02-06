@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Welcome, {{ student.user.first_name }} {{ student.user.last_name }}</h2>
+<p>Student ID: {{ student.student_id }}</p>
+<p>Faculty: {{ student.faculty.name }}</p>
+
+<h3>Your Enrolled Units</h3>
+<table>
+    <thead>
+        <tr>
+            <th>Unit Code</th>
+            <th>Unit Name</th>
+            <th>Semester</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for enrollment in enrolled_units %}
+        <tr>
+            <td>{{ enrollment.unit.code }}</td>
+            <td>{{ enrollment.unit.name }}</td>
+            <td>{{ enrollment.semester.name }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="3">You are not enrolled in any units yet.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
